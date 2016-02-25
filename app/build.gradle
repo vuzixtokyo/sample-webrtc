@@ -1,5 +1,10 @@
 apply plugin: 'com.android.application'
 
+def getSessionId() {
+    def formattedDate = new Date().format('HHmmss')
+    return formattedDate
+}
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -10,6 +15,15 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+
+        buildConfigField "String", "ICE_SERVER", "\"stun.l.google.com:19302\""
+        buildConfigField "String", "SERVER", "\"http://demo.openwebrtc.org:38080\""
+        buildConfigField "String", "SESSION_ID", "\"" + getSessionId() + "\""
+
+        buildConfigField "boolean", "USE_AUDIO", "true"
+        buildConfigField "boolean", "USE_VIDEO", "true"
+
     }
     buildTypes {
         release {
@@ -17,10 +31,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'io.openwebrtc:openwebrtc-android:0.3'
+    compile 'io.openwebrtc:openwebrtc-android-sdk:0.1.0'
+    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'commons-io:commons-io:2.4'
 }
