@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@id/session_id"
-        android:text="準備"/>
+        android:text="Ready"/>
 
 
     <Button
@@ -35,6 +35,6 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_toRightOf="@id/session_id"
-        android:text="開始"/>
+        android:text="Start"/>
 
 </RelativeLayout>

@@ -147,7 +147,7 @@ public class SessionChannel {
                 if (line.length() > 1) {
                     String[] eventSplit = line.split(":", 2);
 
-                    if (eventSplit.length != 2 || !eventSplit[0].equals("event")) {
+                    if (eventSplit.length != 2 || !eventSplit[0].equals(EVENT)) {
                         Log.w(TAG, "SSE: invalid event: " + line + " => " + Arrays.toString(eventSplit));
                         while (!(line = bufferedReader.readLine()).isEmpty()) {
                             Log.w(TAG, "SSE: skipped after malformed event: " + line);
@@ -160,7 +160,7 @@ public class SessionChannel {
                     if ((line = bufferedReader.readLine()) != null) {
                         final String[] dataSplit = line.split(":", 2);
 
-                        if (dataSplit.length != 2 || !dataSplit[0].equals("data")) {
+                        if (dataSplit.length != 2 || !dataSplit[0].equals(DATA)) {
                             Log.w(TAG, "SSE: invalid data: " + line + " => " + Arrays.toString(dataSplit));
                         }
                         final String data = dataSplit[1];

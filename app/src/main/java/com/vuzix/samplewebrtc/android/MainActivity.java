@@ -174,8 +174,29 @@ public class MainActivity extends Activity {
             mRtcSession = RtcSessions.create(RTC_CONFIG);
             mRtcSession.setOnLocalCandidateListener(mOnLocalCandidateListener);
             mRtcSession.setOnLocalDescriptionListener(mOnLocalDescriptionListener);
+
+            updateUis();
         }
     };
+
+    private void updateUis() {
+        mJoinButton.setEnabled(mPeerChannel == null);
+        mCallButton.setEnabled(mPeerChannel != null);
+        if (mPeerChannel != null) {
+            mSessionId.setText("Peer joined: " + mPeerChannel.getId());
+        } else {
+            mSessionId.setText(BuildConfig.SESSION_ID);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mRtcSession != null) {
+            mRtcSession.stop();
+        }
+    }
 
     private final SessionChannel.DisconnectListener mDisconnectListener
             = new SessionChannel.DisconnectListener() {
@@ -185,10 +206,15 @@ public class MainActivity extends Activity {
 
             Toast.makeText(MainActivity.this, "Disconnected from server", Toast.LENGTH_LONG).show();
 
-            mRtcSession.stop();
+            if (mRtcSession != null) {
+                mRtcSession.stop();
+                mRtcSession = null;
+            }
             mStreamSet = null;
             mRtcSession = null;
             mSessionChannel = null;
+
+            updateUis();
         }
     };
 
@@ -213,6 +239,7 @@ public class MainActivity extends Activity {
     @OnClick(R.id.join)
     public void onJoinClick(View view) {
         Log.d(TAG, "onJoinClick");
+        view.setEnabled(false);
 
         mSessionChannel = new SessionChannel(BuildConfig.SERVER, BuildConfig.SESSION_ID);
         mSessionChannel.setJoinListener(mJoinListener);
@@ -227,6 +254,10 @@ public class MainActivity extends Activity {
     @OnClick(R.id.call)
     public void onCallClick(View view) {
         Log.d(TAG, "onCallClick");
+        view.setEnabled(false);
+
+        mSessionId.setText("Connecting: " + mPeerChannel.getId());
+
         mRtcSession.start(mStreamSet);
     }
 
@@ -242,7 +273,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mSessionId.setText(BuildConfig.SESSION_ID);
+        updateUis();
     }
 
 }
