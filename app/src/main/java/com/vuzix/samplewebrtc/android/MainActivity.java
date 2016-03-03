@@ -35,6 +35,10 @@ import butterknife.OnClick;
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    /* Session ID */
+//    private static final String SESSION_ID = "YOUR SESSION ID";
+    private static final String SESSION_ID = BuildConfig.SESSION_ID;
+
     private static final String CANDIDATE = "candidate";
     private static final String SDP = "sdp";
 
@@ -188,7 +192,7 @@ public class MainActivity extends Activity {
         if (mPeerChannel != null) {
             mSessionId.setText("Peer joined: " + mPeerChannel.getId());
         } else {
-            mSessionId.setText(BuildConfig.SESSION_ID);
+            mSessionId.setText(SESSION_ID);
         }
     }
 
@@ -237,7 +241,7 @@ public class MainActivity extends Activity {
         Log.d(TAG, "onJoinClick");
         view.setEnabled(false);
 
-        mSessionChannel = new SessionChannel(BuildConfig.SERVER, BuildConfig.SESSION_ID);
+        mSessionChannel = new SessionChannel(BuildConfig.SERVER, SESSION_ID);
         mSessionChannel.setJoinListener(mJoinListener);
         mSessionChannel.setDisconnectListener(mDisconnectListener);
         mSessionChannel.setSessionFullListener(mSessionFullListener);
