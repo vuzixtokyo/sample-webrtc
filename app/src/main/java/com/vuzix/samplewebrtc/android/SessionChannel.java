@@ -26,7 +26,6 @@ public class SessionChannel {
     public static final int USER_ID_BITS = 40;
     public static final int USER_ID_RADIX = 32;
 
-    private final SecureRandom mRandom = new SecureRandom();
     private final Map<String, Peer> mPeers = new HashMap<>();
 
     private final Handler mMainHandler = new Handler();
@@ -52,7 +51,7 @@ public class SessionChannel {
     }
 
     public SessionChannel(String serverUrl, String session) {
-        String userId = new BigInteger(USER_ID_BITS, mRandom).toString(USER_ID_RADIX);
+        String userId = new BigInteger(USER_ID_BITS, new SecureRandom()).toString(USER_ID_RADIX);
         mServerToClientUrl = serverUrl + "/stoc/" + session + "/" + userId;
         mClientToServerUrl = serverUrl + "/ctos/" + session + "/" + userId;
         open();
@@ -90,10 +89,11 @@ public class SessionChannel {
 
         private static final String EVENT = "event";
         private static final String DATA = "data";
-        public static final String PREFIX_USER = "user-";
-        public static final String JOIN = "join";
-        public static final String LEAVE = "leave";
-        public static final String SESSION_FULL = "sessionfull";
+        private static final String PREFIX_USER = "user-";
+        private static final String JOIN = "join";
+        private static final String LEAVE = "leave";
+        private static final String SESSION_FULL = "sessionfull";
+        private static final String BUSY = "busy";
 
         private final AtomicBoolean isFinished = new AtomicBoolean();
 
@@ -144,34 +144,36 @@ public class SessionChannel {
         private void readEvent(final BufferedReader bufferedReader) throws IOException {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                if (line.length() > 1) {
-                    String[] eventSplit = line.split(":", 2);
+                if (line.length() < 2) {
+                    continue;
+                }
 
-                    if (eventSplit.length != 2 || !eventSplit[0].equals(EVENT)) {
-                        Log.w(TAG, "SSE: invalid event: " + line + " => " + Arrays.toString(eventSplit));
-                        while (!(line = bufferedReader.readLine()).isEmpty()) {
-                            Log.w(TAG, "SSE: skipped after malformed event: " + line);
-                        }
-                        break;
+                String[] eventSplit = line.split(":", 2);
+
+                if (eventSplit.length != 2 || !eventSplit[0].equals(EVENT)) {
+                    Log.w(TAG, "SSE: invalid event: " + line + " => " + Arrays.toString(eventSplit));
+                    while (!(line = bufferedReader.readLine()).isEmpty()) {
+                        Log.w(TAG, "SSE: skipped after malformed event: " + line);
                     }
+                    break;
+                }
 
-                    final String event = eventSplit[1];
+                final String event = eventSplit[1];
 
-                    if ((line = bufferedReader.readLine()) != null) {
-                        final String[] dataSplit = line.split(":", 2);
+                if ((line = bufferedReader.readLine()) != null) {
+                    final String[] dataSplit = line.split(":", 2);
 
-                        if (dataSplit.length != 2 || !dataSplit[0].equals(DATA)) {
-                            Log.w(TAG, "SSE: invalid data: " + line + " => " + Arrays.toString(dataSplit));
-                        }
-                        final String data = dataSplit[1];
-
-                        mMainHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                handleEvent(event, data);
-                            }
-                        });
+                    if (dataSplit.length != 2 || !dataSplit[0].equals(DATA)) {
+                        Log.w(TAG, "SSE: invalid data: " + line + " => " + Arrays.toString(dataSplit));
                     }
+                    final String data = dataSplit[1];
+
+                    mMainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleEvent(event, data);
+                        }
+                    });
                 }
             }
         }
@@ -185,18 +187,18 @@ public class SessionChannel {
                 if (peerChannel != null) {
                     peerChannel.onMessage(data);
                 }
+            } else if (event.equals(LEAVE)) {
+                Peer peerChannel = mPeers.remove(data);
+                if (peerChannel != null) {
+                    peerChannel.onDisconnect();
+                }
             } else if (event.equals(JOIN)) {
                 Peer peerChannel = new Peer(mClientToServerUrl, data);
                 mPeers.put(data, peerChannel);
                 if (mJoinListener != null) {
                     mJoinListener.onPeerJoin(peerChannel);
                 }
-            } else if (event.equals(LEAVE)) {
-                Peer peerChannel = mPeers.remove(data);
-                if (peerChannel != null) {
-                    peerChannel.onDisconnect();
-                }
-            } else if (event.equals(SESSION_FULL)) {
+            } else if (event.equals(SESSION_FULL) || event.equals(BUSY)) {
                 if (mSessionFullListener != null) {
                     mSessionFullListener.onSessionFull();
                 }
@@ -314,6 +316,5 @@ public class SessionChannel {
         public void setDisconnectListener(PeerDisconnectListener onDisconnectListener) {
             mDisconnectListener = onDisconnectListener;
         }
-
     }
 }

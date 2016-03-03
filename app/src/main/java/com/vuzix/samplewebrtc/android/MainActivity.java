@@ -34,7 +34,9 @@ import butterknife.OnClick;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final String SDP = "sdp";
+
+    private static final String CANDIDATE = "candidate";
+    private static final String SDP = "sdp";
 
     private final RtcConfig RTC_CONFIG = RtcConfigs.defaultConfig(BuildConfig.ICE_SERVER);
 
@@ -113,8 +115,8 @@ public class MainActivity extends Activity {
         public void onMessage(JSONObject data) {
             Log.d(TAG, "onMessage " + data);
 
-            if (data.has("candidate")) {
-                JSONObject candidate = data.optJSONObject("candidate");
+            if (data.has(CANDIDATE)) {
+                JSONObject candidate = data.optJSONObject(CANDIDATE);
                 Log.v(TAG, "candidate: " + candidate);
                 RtcCandidate rtcCandidate = RtcCandidates.fromJsep(candidate);
                 if (rtcCandidate != null) {
@@ -147,7 +149,7 @@ public class MainActivity extends Activity {
         try {
             mRtcSession.setRemoteDescription(sessionDescription);
         } catch (InvalidDescriptionException e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getClass().getSimpleName(), e);
         }
     }
 
@@ -158,6 +160,7 @@ public class MainActivity extends Activity {
             mRtcSession.setRemoteDescription(sessionDescription);
             mRtcSession.start(mStreamSet);
         } catch (InvalidDescriptionException e) {
+            Log.e(TAG, e.getClass().getSimpleName(), e);
         }
     }
 
@@ -189,15 +192,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (mRtcSession != null) {
-            mRtcSession.stop();
-        }
-    }
-
     private final SessionChannel.DisconnectListener mDisconnectListener
             = new SessionChannel.DisconnectListener() {
         @Override
@@ -223,7 +217,9 @@ public class MainActivity extends Activity {
         @Override
         public void onSessionFull() {
             Log.d(TAG, "onSessionFull");
-            Toast.makeText(MainActivity.this, "Session is full", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "Session is full or busy.\n" +
+                            "Please try other session Id.",
+                    Toast.LENGTH_LONG).show();
         }
     };
 
@@ -274,6 +270,15 @@ public class MainActivity extends Activity {
         ButterKnife.bind(this);
 
         updateUis();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mRtcSession != null) {
+            mRtcSession.stop();
+        }
     }
 
 }
