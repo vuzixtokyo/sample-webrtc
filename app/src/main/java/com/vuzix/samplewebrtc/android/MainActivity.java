@@ -3,6 +3,7 @@ package com.vuzix.samplewebrtc.android;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
@@ -37,7 +38,7 @@ public class MainActivity extends Activity {
 
     /* Session ID */
 //    private static final String SESSION_ID = "YOUR SESSION ID";
-    private static final String SESSION_ID = BuildConfig.SESSION_ID;
+    private static final String SESSION_ID = "";
 
     private static final String CANDIDATE = "candidate";
     private static final String SDP = "sdp";
@@ -269,6 +270,13 @@ public class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        if (TextUtils.isEmpty(SESSION_ID)) {
+            Toast.makeText(this, "エラー: SESSION_IDが空です。\n" +
+                    "MainActivity.javaを開いてSESSION_IDを指定してください", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
