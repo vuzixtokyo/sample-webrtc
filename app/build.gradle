@@ -17,7 +17,7 @@ android {
         versionName "1.0"
 
         buildConfigField "String", "ICE_SERVER", "\"stun.l.google.com:19302\""
-        buildConfigField "String", "SERVER", "\"http://demo.openwebrtc.org:38080\""
+        buildConfigField "String", "SERVER", "\"http://tokyo.vuzix.jp:8080\""
         buildConfigField "String", "SESSION_ID", "\"" + getSessionId() + "\""
 
         buildConfigField "boolean", "USE_AUDIO", "true"
